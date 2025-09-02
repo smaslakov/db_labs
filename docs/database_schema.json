@@ -1,0 +1,1316 @@
+{
+  "database": {
+    "name": "it_studio_portfolio",
+    "description": "Database schema for IT Studio Portfolio Management System",
+    "version": "1.0"
+  },
+  "tables": [
+    {
+      "name": "roles",
+      "description": "User roles in the system",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "constraints": ["PRIMARY KEY"],
+          "description": "Unique role identifier"
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR(50)",
+          "constraints": ["UNIQUE", "NOT NULL"],
+          "description": "Role name"
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "constraints": [],
+          "description": "Role description"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "constraints": ["DEFAULT NOW()"],
+          "description": "Creation date"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_roles_name",
+          "columns": ["name"]
+        }
+      ]
+    },
+    {
+      "name": "users",
+      "description": "System users",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "constraints": ["PRIMARY KEY"],
+          "description": "Unique user identifier"
+        },
+        {
+          "name": "username",
+          "type": "VARCHAR(50)",
+          "constraints": ["UNIQUE", "NOT NULL"],
+          "description": "User login"
+        },
+        {
+          "name": "email",
+          "type": "VARCHAR(100)",
+          "constraints": ["UNIQUE", "NOT NULL"],
+          "description": "Email address"
+        },
+        {
+          "name": "password_hash",
+          "type": "VARCHAR(255)",
+          "constraints": ["NOT NULL"],
+          "description": "Password hash"
+        },
+        {
+          "name": "first_name",
+          "type": "VARCHAR(50)",
+          "constraints": ["NOT NULL"],
+          "description": "First name"
+        },
+        {
+          "name": "last_name",
+          "type": "VARCHAR(50)",
+          "constraints": ["NOT NULL"],
+          "description": "Last name"
+        },
+        {
+          "name": "role_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "description": "User role",
+          "foreign_key": {
+            "table": "roles",
+            "column": "id",
+            "on_delete": "RESTRICT"
+          }
+        },
+        {
+          "name": "hourly_rate",
+          "type": "DECIMAL(10,2)",
+          "constraints": ["DEFAULT 0"],
+          "description": "Hourly work rate"
+        },
+        {
+          "name": "is_active",
+          "type": "BOOLEAN",
+          "constraints": ["DEFAULT TRUE"],
+          "description": "Is user active"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "constraints": ["DEFAULT NOW()"],
+          "description": "Creation date"
+        },
+        {
+          "name": "updated_at",
+          "type": "TIMESTAMP",
+          "constraints": ["DEFAULT NOW()"],
+          "description": "Last update date"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_users_username",
+          "columns": ["username"]
+        },
+        {
+          "name": "idx_users_email",
+          "columns": ["email"]
+        },
+        {
+          "name": "idx_users_role_id",
+          "columns": ["role_id"]
+        }
+      ]
+    },
+    {
+      "name": "permissions",
+      "description": "System permissions",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "constraints": ["PRIMARY KEY"],
+          "description": "Unique permission identifier"
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR(100)",
+          "constraints": ["UNIQUE", "NOT NULL"],
+          "description": "Permission name"
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "constraints": [],
+          "description": "Permission description"
+        },
+        {
+          "name": "resource",
+          "type": "VARCHAR(50)",
+          "constraints": ["NOT NULL"],
+          "description": "Resource (users, projects, tasks, etc.)"
+        },
+        {
+          "name": "action",
+          "type": "VARCHAR(20)",
+          "constraints": ["NOT NULL"],
+          "description": "Action (create, read, update, delete)"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_permissions_resource_action",
+          "columns": ["resource", "action"]
+        }
+      ]
+    },
+    {
+      "name": "role_permissions",
+      "description": "Role-permission relationships",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "constraints": ["PRIMARY KEY"],
+          "description": "Unique identifier"
+        },
+        {
+          "name": "role_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "description": "Role ID",
+          "foreign_key": {
+            "table": "roles",
+            "column": "id",
+            "on_delete": "CASCADE"
+          }
+        },
+        {
+          "name": "permission_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "description": "Permission ID",
+          "foreign_key": {
+            "table": "permissions",
+            "column": "id",
+            "on_delete": "CASCADE"
+          }
+        },
+        {
+          "name": "granted_at",
+          "type": "TIMESTAMP",
+          "constraints": ["DEFAULT NOW()"],
+          "description": "Permission grant date"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_role_permissions_role_id",
+          "columns": ["role_id"]
+        },
+        {
+          "name": "idx_role_permissions_permission_id",
+          "columns": ["permission_id"]
+        }
+      ],
+      "unique_constraints": [
+        {
+          "name": "uk_role_permission",
+          "columns": ["role_id", "permission_id"]
+        }
+      ]
+    },
+    {
+      "name": "user_sessions",
+      "description": "User sessions management",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "constraints": ["PRIMARY KEY"],
+          "description": "Unique session identifier"
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "description": "User ID",
+          "foreign_key": {
+            "table": "users",
+            "column": "id",
+            "on_delete": "CASCADE"
+          }
+        },
+        {
+          "name": "session_token",
+          "type": "VARCHAR(255)",
+          "constraints": ["UNIQUE", "NOT NULL"],
+          "description": "Session token"
+        },
+        {
+          "name": "ip_address",
+          "type": "INET",
+          "constraints": [],
+          "description": "User IP address"
+        },
+        {
+          "name": "user_agent",
+          "type": "TEXT",
+          "constraints": [],
+          "description": "Browser information"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "constraints": ["DEFAULT NOW()"],
+          "description": "Session creation time"
+        },
+        {
+          "name": "expires_at",
+          "type": "TIMESTAMP",
+          "constraints": ["NOT NULL"],
+          "description": "Session expiration time"
+        },
+        {
+          "name": "is_active",
+          "type": "BOOLEAN",
+          "constraints": ["DEFAULT TRUE"],
+          "description": "Is session active"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_user_sessions_user_id",
+          "columns": ["user_id"]
+        },
+        {
+          "name": "idx_user_sessions_token",
+          "columns": ["session_token"]
+        }
+      ]
+    },
+    {
+      "name": "audit_logs",
+      "description": "System audit log",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "constraints": ["PRIMARY KEY"],
+          "description": "Unique log entry identifier"
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "constraints": [],
+          "description": "User ID (can be NULL for system actions)",
+          "foreign_key": {
+            "table": "users",
+            "column": "id",
+            "on_delete": "SET NULL"
+          }
+        },
+        {
+          "name": "action",
+          "type": "VARCHAR(50)",
+          "constraints": ["NOT NULL"],
+          "description": "Action type"
+        },
+        {
+          "name": "resource_type",
+          "type": "VARCHAR(50)",
+          "constraints": ["NOT NULL"],
+          "description": "Resource type"
+        },
+        {
+          "name": "resource_id",
+          "type": "INTEGER",
+          "constraints": [],
+          "description": "Resource ID"
+        },
+        {
+          "name": "old_values",
+          "type": "JSONB",
+          "constraints": [],
+          "description": "Old values (for UPDATE)"
+        },
+        {
+          "name": "new_values",
+          "type": "JSONB",
+          "constraints": [],
+          "description": "New values"
+        },
+        {
+          "name": "ip_address",
+          "type": "INET",
+          "constraints": [],
+          "description": "IP address"
+        },
+        {
+          "name": "user_agent",
+          "type": "TEXT",
+          "constraints": [],
+          "description": "Browser information"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "constraints": ["DEFAULT NOW()"],
+          "description": "Action time"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_audit_logs_user_id",
+          "columns": ["user_id"]
+        },
+        {
+          "name": "idx_audit_logs_action",
+          "columns": ["action"]
+        },
+        {
+          "name": "idx_audit_logs_created_at",
+          "columns": ["created_at"]
+        },
+        {
+          "name": "idx_audit_logs_resource",
+          "columns": ["resource_type", "resource_id"]
+        }
+      ]
+    },
+    {
+      "name": "clients",
+      "description": "Studio clients",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "constraints": ["PRIMARY KEY"],
+          "description": "Unique client identifier"
+        },
+        {
+          "name": "company_name",
+          "type": "VARCHAR(100)",
+          "constraints": ["NOT NULL"],
+          "description": "Company name"
+        },
+        {
+          "name": "contact_person",
+          "type": "VARCHAR(100)",
+          "constraints": ["NOT NULL"],
+          "description": "Contact person"
+        },
+        {
+          "name": "email",
+          "type": "VARCHAR(100)",
+          "constraints": ["UNIQUE", "NOT NULL"],
+          "description": "Email address"
+        },
+        {
+          "name": "phone",
+          "type": "VARCHAR(20)",
+          "constraints": [],
+          "description": "Phone number"
+        },
+        {
+          "name": "address",
+          "type": "TEXT",
+          "constraints": [],
+          "description": "Address"
+        },
+        {
+          "name": "website",
+          "type": "VARCHAR(255)",
+          "constraints": [],
+          "description": "Website"
+        },
+        {
+          "name": "tax_id",
+          "type": "VARCHAR(50)",
+          "constraints": [],
+          "description": "Tax ID"
+        },
+        {
+          "name": "notes",
+          "type": "TEXT",
+          "constraints": [],
+          "description": "Client notes"
+        },
+        {
+          "name": "is_active",
+          "type": "BOOLEAN",
+          "constraints": ["DEFAULT TRUE"],
+          "description": "Is client active"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "constraints": ["DEFAULT NOW()"],
+          "description": "Creation date"
+        },
+        {
+          "name": "updated_at",
+          "type": "TIMESTAMP",
+          "constraints": ["DEFAULT NOW()"],
+          "description": "Last update date"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_clients_email",
+          "columns": ["email"]
+        },
+        {
+          "name": "idx_clients_company_name",
+          "columns": ["company_name"]
+        }
+      ]
+    },
+    {
+      "name": "projects",
+      "description": "Studio projects",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "constraints": ["PRIMARY KEY"],
+          "description": "Unique project identifier"
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR(150)",
+          "constraints": ["NOT NULL"],
+          "description": "Project name"
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "constraints": [],
+          "description": "Project description"
+        },
+        {
+          "name": "client_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "description": "Client ID",
+          "foreign_key": {
+            "table": "clients",
+            "column": "id",
+            "on_delete": "RESTRICT"
+          }
+        },
+        {
+          "name": "manager_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "description": "Project manager ID",
+          "foreign_key": {
+            "table": "users",
+            "column": "id",
+            "on_delete": "RESTRICT"
+          }
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(20)",
+          "constraints": ["DEFAULT 'planning'"],
+          "description": "Project status",
+          "check_constraint": "status IN ('planning', 'active', 'testing', 'completed', 'cancelled')"
+        },
+        {
+          "name": "priority",
+          "type": "VARCHAR(10)",
+          "constraints": ["DEFAULT 'medium'"],
+          "description": "Priority level",
+          "check_constraint": "priority IN ('low', 'medium', 'high', 'critical')"
+        },
+        {
+          "name": "estimated_budget",
+          "type": "DECIMAL(12,2)",
+          "constraints": [],
+          "description": "Estimated budget"
+        },
+        {
+          "name": "actual_cost",
+          "type": "DECIMAL(12,2)",
+          "constraints": ["DEFAULT 0"],
+          "description": "Actual cost"
+        },
+        {
+          "name": "estimated_hours",
+          "type": "INTEGER",
+          "constraints": [],
+          "description": "Estimated hours"
+        },
+        {
+          "name": "actual_hours",
+          "type": "INTEGER",
+          "constraints": ["DEFAULT 0"],
+          "description": "Actual hours"
+        },
+        {
+          "name": "start_date",
+          "type": "DATE",
+          "constraints": ["NOT NULL"],
+          "description": "Start date"
+        },
+        {
+          "name": "end_date",
+          "type": "DATE",
+          "constraints": [],
+          "description": "Planned end date"
+        },
+        {
+          "name": "actual_end_date",
+          "type": "DATE",
+          "constraints": [],
+          "description": "Actual end date"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "constraints": ["DEFAULT NOW()"],
+          "description": "Creation date"
+        },
+        {
+          "name": "updated_at",
+          "type": "TIMESTAMP",
+          "constraints": ["DEFAULT NOW()"],
+          "description": "Last update date"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_projects_client_id",
+          "columns": ["client_id"]
+        },
+        {
+          "name": "idx_projects_manager_id",
+          "columns": ["manager_id"]
+        },
+        {
+          "name": "idx_projects_status",
+          "columns": ["status"]
+        },
+        {
+          "name": "idx_projects_dates",
+          "columns": ["start_date", "end_date"]
+        }
+      ]
+    },
+    {
+      "name": "project_members",
+      "description": "Project team members",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "constraints": ["PRIMARY KEY"],
+          "description": "Unique identifier"
+        },
+        {
+          "name": "project_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "description": "Project ID",
+          "foreign_key": {
+            "table": "projects",
+            "column": "id",
+            "on_delete": "CASCADE"
+          }
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "description": "User ID",
+          "foreign_key": {
+            "table": "users",
+            "column": "id",
+            "on_delete": "CASCADE"
+          }
+        },
+        {
+          "name": "role_in_project",
+          "type": "VARCHAR(50)",
+          "constraints": ["NOT NULL"],
+          "description": "Role in project"
+        },
+        {
+          "name": "joined_at",
+          "type": "TIMESTAMP",
+          "constraints": ["DEFAULT NOW()"],
+          "description": "Join date"
+        },
+        {
+          "name": "left_at",
+          "type": "TIMESTAMP",
+          "constraints": [],
+          "description": "Leave date"
+        },
+        {
+          "name": "is_active",
+          "type": "BOOLEAN",
+          "constraints": ["DEFAULT TRUE"],
+          "description": "Is member active"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_project_members_project_id",
+          "columns": ["project_id"]
+        },
+        {
+          "name": "idx_project_members_user_id",
+          "columns": ["user_id"]
+        }
+      ],
+      "unique_constraints": [
+        {
+          "name": "uk_project_user",
+          "columns": ["project_id", "user_id"]
+        }
+      ]
+    },
+    {
+      "name": "task_statuses",
+      "description": "Task status definitions",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "constraints": ["PRIMARY KEY"],
+          "description": "Unique status identifier"
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR(50)",
+          "constraints": ["UNIQUE", "NOT NULL"],
+          "description": "Status name"
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "constraints": [],
+          "description": "Status description"
+        },
+        {
+          "name": "color",
+          "type": "VARCHAR(7)",
+          "constraints": [],
+          "description": "Display color (HEX)"
+        },
+        {
+          "name": "is_final",
+          "type": "BOOLEAN",
+          "constraints": ["DEFAULT FALSE"],
+          "description": "Is final status"
+        },
+        {
+          "name": "sort_order",
+          "type": "INTEGER",
+          "constraints": ["DEFAULT 0"],
+          "description": "Sort order"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_task_statuses_sort_order",
+          "columns": ["sort_order"]
+        }
+      ]
+    },
+    {
+      "name": "tasks",
+      "description": "Project tasks",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "constraints": ["PRIMARY KEY"],
+          "description": "Unique task identifier"
+        },
+        {
+          "name": "project_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "description": "Project ID",
+          "foreign_key": {
+            "table": "projects",
+            "column": "id",
+            "on_delete": "CASCADE"
+          }
+        },
+        {
+          "name": "title",
+          "type": "VARCHAR(200)",
+          "constraints": ["NOT NULL"],
+          "description": "Task title"
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "constraints": [],
+          "description": "Task description"
+        },
+        {
+          "name": "status_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "description": "Status ID",
+          "foreign_key": {
+            "table": "task_statuses",
+            "column": "id",
+            "on_delete": "RESTRICT"
+          }
+        },
+        {
+          "name": "assigned_user_id",
+          "type": "INTEGER",
+          "constraints": [],
+          "description": "Assigned user ID",
+          "foreign_key": {
+            "table": "users",
+            "column": "id",
+            "on_delete": "SET NULL"
+          }
+        },
+        {
+          "name": "created_by_user_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "description": "Task creator ID",
+          "foreign_key": {
+            "table": "users",
+            "column": "id",
+            "on_delete": "RESTRICT"
+          }
+        },
+        {
+          "name": "priority",
+          "type": "VARCHAR(10)",
+          "constraints": ["DEFAULT 'medium'"],
+          "description": "Priority level",
+          "check_constraint": "priority IN ('low', 'medium', 'high', 'critical')"
+        },
+        {
+          "name": "estimated_hours",
+          "type": "INTEGER",
+          "constraints": [],
+          "description": "Estimated hours"
+        },
+        {
+          "name": "actual_hours",
+          "type": "INTEGER",
+          "constraints": ["DEFAULT 0"],
+          "description": "Actual hours"
+        },
+        {
+          "name": "due_date",
+          "type": "TIMESTAMP",
+          "constraints": [],
+          "description": "Due date"
+        },
+        {
+          "name": "parent_task_id",
+          "type": "INTEGER",
+          "constraints": [],
+          "description": "Parent task ID (for subtasks)",
+          "foreign_key": {
+            "table": "tasks",
+            "column": "id",
+            "on_delete": "CASCADE"
+          }
+        },
+        {
+          "name": "completion_percentage",
+          "type": "INTEGER",
+          "constraints": ["DEFAULT 0"],
+          "description": "Completion percentage",
+          "check_constraint": "completion_percentage >= 0 AND completion_percentage <= 100"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "constraints": ["DEFAULT NOW()"],
+          "description": "Creation date"
+        },
+        {
+          "name": "updated_at",
+          "type": "TIMESTAMP",
+          "constraints": ["DEFAULT NOW()"],
+          "description": "Last update date"
+        },
+        {
+          "name": "completed_at",
+          "type": "TIMESTAMP",
+          "constraints": [],
+          "description": "Completion date"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_tasks_project_id",
+          "columns": ["project_id"]
+        },
+        {
+          "name": "idx_tasks_status_id",
+          "columns": ["status_id"]
+        },
+        {
+          "name": "idx_tasks_assigned_user_id",
+          "columns": ["assigned_user_id"]
+        },
+        {
+          "name": "idx_tasks_created_by_user_id",
+          "columns": ["created_by_user_id"]
+        },
+        {
+          "name": "idx_tasks_parent_task_id",
+          "columns": ["parent_task_id"]
+        },
+        {
+          "name": "idx_tasks_due_date",
+          "columns": ["due_date"]
+        }
+      ]
+    },
+    {
+      "name": "time_entries",
+      "description": "Time tracking entries",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "constraints": ["PRIMARY KEY"],
+          "description": "Unique entry identifier"
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "description": "User ID",
+          "foreign_key": {
+            "table": "users",
+            "column": "id",
+            "on_delete": "CASCADE"
+          }
+        },
+        {
+          "name": "task_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "description": "Task ID",
+          "foreign_key": {
+            "table": "tasks",
+            "column": "id",
+            "on_delete": "CASCADE"
+          }
+        },
+        {
+          "name": "start_time",
+          "type": "TIMESTAMP",
+          "constraints": ["NOT NULL"],
+          "description": "Work start time"
+        },
+        {
+          "name": "end_time",
+          "type": "TIMESTAMP",
+          "constraints": [],
+          "description": "Work end time"
+        },
+        {
+          "name": "hours",
+          "type": "DECIMAL(5,2)",
+          "constraints": [],
+          "description": "Hours worked (calculated automatically)"
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "constraints": [],
+          "description": "Work description"
+        },
+        {
+          "name": "is_billable",
+          "type": "BOOLEAN",
+          "constraints": ["DEFAULT TRUE"],
+          "description": "Is billable hours"
+        },
+        {
+          "name": "hourly_rate",
+          "type": "DECIMAL(10,2)",
+          "constraints": [],
+          "description": "Hourly rate (from user profile)"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "constraints": ["DEFAULT NOW()"],
+          "description": "Entry creation date"
+        },
+        {
+          "name": "updated_at",
+          "type": "TIMESTAMP",
+          "constraints": ["DEFAULT NOW()"],
+          "description": "Last update date"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_time_entries_user_id",
+          "columns": ["user_id"]
+        },
+        {
+          "name": "idx_time_entries_task_id",
+          "columns": ["task_id"]
+        },
+        {
+          "name": "idx_time_entries_start_time",
+          "columns": ["start_time"]
+        },
+        {
+          "name": "idx_time_entries_user_task",
+          "columns": ["user_id", "task_id"]
+        }
+      ]
+    },
+    {
+      "name": "invoices",
+      "description": "Client invoices",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "constraints": ["PRIMARY KEY"],
+          "description": "Unique invoice identifier"
+        },
+        {
+          "name": "invoice_number",
+          "type": "VARCHAR(50)",
+          "constraints": ["UNIQUE", "NOT NULL"],
+          "description": "Invoice number"
+        },
+        {
+          "name": "client_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "description": "Client ID",
+          "foreign_key": {
+            "table": "clients",
+            "column": "id",
+            "on_delete": "RESTRICT"
+          }
+        },
+        {
+          "name": "project_id",
+          "type": "INTEGER",
+          "constraints": [],
+          "description": "Project ID (can be NULL for general invoices)",
+          "foreign_key": {
+            "table": "projects",
+            "column": "id",
+            "on_delete": "SET NULL"
+          }
+        },
+        {
+          "name": "issue_date",
+          "type": "DATE",
+          "constraints": ["NOT NULL"],
+          "description": "Issue date"
+        },
+        {
+          "name": "due_date",
+          "type": "DATE",
+          "constraints": ["NOT NULL"],
+          "description": "Due date"
+        },
+        {
+          "name": "subtotal",
+          "type": "DECIMAL(12,2)",
+          "constraints": ["NOT NULL"],
+          "description": "Subtotal amount"
+        },
+        {
+          "name": "tax_rate",
+          "type": "DECIMAL(5,2)",
+          "constraints": ["DEFAULT 0"],
+          "description": "Tax rate"
+        },
+        {
+          "name": "tax_amount",
+          "type": "DECIMAL(12,2)",
+          "constraints": ["DEFAULT 0"],
+          "description": "Tax amount"
+        },
+        {
+          "name": "total_amount",
+          "type": "DECIMAL(12,2)",
+          "constraints": ["NOT NULL"],
+          "description": "Total amount"
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(20)",
+          "constraints": ["DEFAULT 'draft'"],
+          "description": "Invoice status",
+          "check_constraint": "status IN ('draft', 'sent', 'paid', 'overdue', 'cancelled')"
+        },
+        {
+          "name": "notes",
+          "type": "TEXT",
+          "constraints": [],
+          "description": "Notes"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "constraints": ["DEFAULT NOW()"],
+          "description": "Creation date"
+        },
+        {
+          "name": "updated_at",
+          "type": "TIMESTAMP",
+          "constraints": ["DEFAULT NOW()"],
+          "description": "Last update date"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_invoices_client_id",
+          "columns": ["client_id"]
+        },
+        {
+          "name": "idx_invoices_project_id",
+          "columns": ["project_id"]
+        },
+        {
+          "name": "idx_invoices_invoice_number",
+          "columns": ["invoice_number"]
+        },
+        {
+          "name": "idx_invoices_status",
+          "columns": ["status"]
+        },
+        {
+          "name": "idx_invoices_dates",
+          "columns": ["issue_date", "due_date"]
+        }
+      ]
+    },
+    {
+      "name": "payments",
+      "description": "Invoice payments",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "constraints": ["PRIMARY KEY"],
+          "description": "Unique payment identifier"
+        },
+        {
+          "name": "invoice_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "description": "Invoice ID",
+          "foreign_key": {
+            "table": "invoices",
+            "column": "id",
+            "on_delete": "CASCADE"
+          }
+        },
+        {
+          "name": "amount",
+          "type": "DECIMAL(12,2)",
+          "constraints": ["NOT NULL"],
+          "description": "Payment amount"
+        },
+        {
+          "name": "payment_date",
+          "type": "DATE",
+          "constraints": ["NOT NULL"],
+          "description": "Payment date"
+        },
+        {
+          "name": "payment_method",
+          "type": "VARCHAR(50)",
+          "constraints": ["NOT NULL"],
+          "description": "Payment method"
+        },
+        {
+          "name": "transaction_id",
+          "type": "VARCHAR(100)",
+          "constraints": [],
+          "description": "Transaction ID"
+        },
+        {
+          "name": "notes",
+          "type": "TEXT",
+          "constraints": [],
+          "description": "Payment notes"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "constraints": ["DEFAULT NOW()"],
+          "description": "Entry creation date"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_payments_invoice_id",
+          "columns": ["invoice_id"]
+        },
+        {
+          "name": "idx_payments_payment_date",
+          "columns": ["payment_date"]
+        },
+        {
+          "name": "idx_payments_transaction_id",
+          "columns": ["transaction_id"]
+        }
+      ]
+    }
+  ],
+  "default_data": {
+    "roles": [
+      {
+        "name": "Administrator",
+        "description": "Full system access"
+      },
+      {
+        "name": "Project Manager",
+        "description": "Manages projects and teams"
+      },
+      {
+        "name": "Developer",
+        "description": "Works on assigned tasks"
+      },
+      {
+        "name": "Client",
+        "description": "Views project status"
+      }
+    ],
+    "permissions": [
+      {
+        "name": "users_create",
+        "description": "Create users",
+        "resource": "users",
+        "action": "create"
+      },
+      {
+        "name": "users_read",
+        "description": "Read users",
+        "resource": "users",
+        "action": "read"
+      },
+      {
+        "name": "users_update",
+        "description": "Update users",
+        "resource": "users",
+        "action": "update"
+      },
+      {
+        "name": "users_delete",
+        "description": "Delete users",
+        "resource": "users",
+        "action": "delete"
+      },
+      {
+        "name": "projects_create",
+        "description": "Create projects",
+        "resource": "projects",
+        "action": "create"
+      },
+      {
+        "name": "projects_read",
+        "description": "Read projects",
+        "resource": "projects",
+        "action": "read"
+      },
+      {
+        "name": "projects_update",
+        "description": "Update projects",
+        "resource": "projects",
+        "action": "update"
+      },
+      {
+        "name": "projects_delete",
+        "description": "Delete projects",
+        "resource": "projects",
+        "action": "delete"
+      },
+      {
+        "name": "tasks_create",
+        "description": "Create tasks",
+        "resource": "tasks",
+        "action": "create"
+      },
+      {
+        "name": "tasks_read",
+        "description": "Read tasks",
+        "resource": "tasks",
+        "action": "read"
+      },
+      {
+        "name": "tasks_update",
+        "description": "Update tasks",
+        "resource": "tasks",
+        "action": "update"
+      },
+      {
+        "name": "tasks_delete",
+        "description": "Delete tasks",
+        "resource": "tasks",
+        "action": "delete"
+      }
+    ],
+    "task_statuses": [
+      {
+        "name": "New",
+        "description": "Newly created task",
+        "color": "#6c757d",
+        "is_final": false,
+        "sort_order": 1
+      },
+      {
+        "name": "In Progress",
+        "description": "Task is being worked on",
+        "color": "#007bff",
+        "is_final": false,
+        "sort_order": 2
+      },
+      {
+        "name": "Review",
+        "description": "Task is under review",
+        "color": "#ffc107",
+        "is_final": false,
+        "sort_order": 3
+      },
+      {
+        "name": "Completed",
+        "description": "Task is completed",
+        "color": "#28a745",
+        "is_final": true,
+        "sort_order": 4
+      },
+      {
+        "name": "Rejected",
+        "description": "Task was rejected",
+        "color": "#dc3545",
+        "is_final": true,
+        "sort_order": 5
+      }
+    ]
+  }
+}
